@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast</title>
+    <style>
+        body {
+            background-color: yellow;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+        }
+        .weather-info {
+            margin-top: 20px;
+        }
+        canvas {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="color:red;">WEATHER FORECAST</h1>
+        <label for="city">Enter city name:</label>
+        <input type="text" id="city" placeholder="City name">
+        <button onclick="weather()">Get Weather</button>
+        
+        <div class="weather-info">
+            Max Temp: <p id="maxtemp"></p>
+            Min Temp: <p id="mintemp"></p>
+            Country: <p id="country"></p>
+        </div>
+        
+        <div>
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        async function weather() {
+            const city = document.getElementById("city").value;
+            const apiKey = "e2d74f4d26b97ad02a7ffa5a07234822";
+            const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('City not found');
+                
+                const data = await response.json();
+                const tempArray = [];
+                const dateArray = [];
+                
+                for (let i = 0; i < data.list.length; i += 8) {
+                    tempArray.push(data.list[i].main.temp);
+                    dateArray.push(data.list[i].dt_txt.split(' ')[0]);
+                }
+                
+                document.getElementById("maxtemp").textContent = Math.max(...tempArray);
+                document.getElementById("mintemp").textContent = Math.min(...tempArray);
+                document.getElementById("country").textContent = data.city.country;
+                
+                plot(tempArray, dateArray);
+            } catch (error) {
+                alert('Error fetching weather data: ' + error.message);
+            }
+        }
+
+        function plot(temps, dates) {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: temps,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
